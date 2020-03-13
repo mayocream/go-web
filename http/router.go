@@ -1,9 +1,10 @@
-package server
+package http
 
 import (
+	"go-web/controller"
+	"go-web/controller/example"
+	"go-web/http/middleware"
 	"os"
-	"singo/api"
-	"singo/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,24 +18,27 @@ func NewRouter() *gin.Engine {
 	r.Use(middleware.Cors())
 	r.Use(middleware.CurrentUser())
 
+	r.GET("ping", example.Ping)
+
 	// 路由
 	v1 := r.Group("/api/v1")
 	{
-		v1.POST("ping", api.Ping)
+
+		v1.POST("ping", controller.Ping)
 
 		// 用户登录
-		v1.POST("user/register", api.UserRegister)
+		v1.POST("user/register", controller.UserRegister)
 
 		// 用户登录
-		v1.POST("user/login", api.UserLogin)
+		v1.POST("user/login", controller.UserLogin)
 
 		// 需要登录保护的
 		auth := v1.Group("")
 		auth.Use(middleware.AuthRequired())
 		{
 			// User Routing
-			auth.GET("user/me", api.UserMe)
-			auth.DELETE("user/logout", api.UserLogout)
+			auth.GET("user/me", controller.UserMe)
+			auth.DELETE("user/logout", controller.UserLogout)
 		}
 	}
 	return r

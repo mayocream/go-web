@@ -1,28 +1,73 @@
 package conf
 
 import (
-	"os"
-	"singo/cache"
-	"singo/model"
-	"singo/util"
-
-	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
+	"log"
 )
 
-// Init 初始化配置项
-func Init() {
-	// 从本地读取环境变量
-	godotenv.Load()
+type Configs struct {
+	Version 	int
+	Timezone 	string
+	Environment EnvironmentConfig
+	Database 	DatabaseConfig
+	Redis 		RedisConfig
+}
 
-	// 设置日志级别
-	util.BuildLogger(os.Getenv("LOG_LEVEL"))
+type EnvironmentConfig struct {
+	Env 		string
+	Debug 		bool
+}
 
-	// 读取翻译文件
-	if err := LoadLocales("conf/locales/zh-cn.yaml"); err != nil {
-		util.Log().Panic("翻译文件加载失败", err)
+type RedisConfig struct {
+	Host 		string
+	Port		int
+	Base 		int
+}
+
+type DatabaseConfig struct {
+	Host 		string
+	Port 		int
+	Database 	string
+	User 		string
+	Password 	string
+}
+
+var Config *Configs
+
+func init() {
+	var err error
+	// Read .env
+	viper.SetConfigFile(".env")
+	if err = viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error loading .env file: %s \n", err)
 	}
 
-	// 连接数据库
-	model.Database(os.Getenv("MYSQL_DSN"))
-	cache.Redis()
+	// Read config.yaml
+	viper.SetConfigFile("./config/config.yaml")
+	if err = viper.MergeInConfig(); err != nil {
+		log.Fatalf("Fatal error config file: %s \n", err)
+	}
+
+	viper.AutomaticEnv()
+
+	Config = &Configs{
+		Version: viper.GetInt("version"),
+		Timezone: viper.GetString("timezone"),
+		Environment: EnvironmentConfig{
+			Env:   viper.GetString("ENV"),
+			Debug: viper.GetBool("DEBUG"),
+		},
+		Database: DatabaseConfig{
+			Host:     viper.GetString("DB_HOST"),
+			Port:     viper.GetInt("DB_PORT"),
+			Database: viper.GetString("DB_DATABASE"),
+			User:     viper.GetString("DB_USER"),
+			Password: viper.GetString("DB_PASSWORD"),
+		},
+		Redis: RedisConfig{
+			Host: viper.GetString("REDIS_HOST"),
+			Port: viper.GetInt("REDIS_PORT"),
+			Base: viper.GetInt("REDIS_BASE"),
+		},
+	}
 }

@@ -1,0 +1,7 @@
+# Program Version
+version: 0.1
+# Time Zone
+timezone: UTC
+# Database
+database:
+    type: postgres

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"singo/conf"
-	"singo/server"
+	"go-web/conf"
+	"go-web/http"
 )
 
 func main() {
@@ -10,6 +10,6 @@ func main() {
 	conf.Init()
 
 	// 装载路由
-	r := server.NewRouter()
+	r := http.NewRouter()
 	r.Run(":3000")
 }
